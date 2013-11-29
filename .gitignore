@@ -1,0 +1,4 @@
+*.pyc
+*.swp
+vom/migrations
+*.sqlite3
