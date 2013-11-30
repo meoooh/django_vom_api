@@ -40,11 +40,14 @@ class UserSerializer(serializers.ModelSerializer):
             for field_name in existing - allowed:
                 self.fields.pop(field_name)
 
-    def get_password_field(self, model_field):
-        return None
+    @property
+    def data(self):
+        d = super(UserSerializer, self).data
 
-    def get_password2_field(self, model_field):
-        return None
+        if 'password' in d:
+            del d['password']
+
+        return d
 
     def restore_object(self, attrs, instance=None):
         user = super(UserSerializer, self).restore_object(attrs, instance)
@@ -53,7 +56,9 @@ class UserSerializer(serializers.ModelSerializer):
         return user
 
     def to_native(self, obj):
-        pass
+        if 'password2' in self.fields:
+            del self.fields['password2']
+        return super(UserSerializer, self).to_native(obj)
 
     def validate_sex(self, attrs, source):
         if attrs['sex'] not in (0, 1):
@@ -73,13 +78,6 @@ class UserSerializer(serializers.ModelSerializer):
             _("The two password fields didn't match."),
             code='password_mismatch',
         )
-
-    # def save_object(self, obj, **kwargs):
-    #     user = super(UserSerializer, self).save_object(obj, **kwargs)
-    #     user.set_password(seri)
-    #     if commit:
-    #         user.save()
-    #     return user
 
 
 class AnswerSerializer(serializers.ModelSerializer):
