@@ -16,15 +16,15 @@ class Vom(APITestCase):
         )
 
     def test_create_user_multipart_success(self):
-        data = {'email': 'ha@h.com', 'sex': 1, 'name': 'ha',
-                'password': '1313', 'password2': '1313', 'birthday': '1990-06-06'}
+        data = {'email': 'ha@h.com', 'sex': 1, 'name': 'ha', 'password': '1313',
+                'password2': '1313', 'birthday': '1990-06-06'}
         response = self.client.post('/users', data)
 
         self.assertEqual(response.status_code, 201)
 
     def test_create_user_json_success(self):
-        data = {'email': 'ha@h.com', 'sex': 1, 'name': 'ha',
-                'password': '1313', 'password2': '1313', 'birthday': '1990-06-06'}
+        data = {'email': 'ha@h.com', 'sex': 1, 'name': 'ha', 'password': '1313',
+                'password2': '1313', 'birthday': '1990-06-06'}
         response = self.client.post('/users', data, format='json')
 
         self.assertEqual(response.status_code, 201)
