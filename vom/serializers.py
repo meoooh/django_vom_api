@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext as _
 
-from rest_framework import serializers
+from rest_framework import serializers, pagination
 
 from .models import *
 
@@ -10,21 +10,20 @@ class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
 
-
 class QuestionSerializer(serializers.ModelSerializer):
     category = CategorySerializer()
 
     class Meta:
         model = Question
 
-
-class UserSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.HyperlinkedModelSerializer):
     password2 = serializers.CharField()
 
     class Meta:
         model = VomUser
-        fields = ('id', 'email', 'sex', 'birthday',
+        fields = ('url', 'id', 'email', 'sex', 'birthday',
                   'name', 'password', 'password2')
+        read_only_fields = ('email',)
 
     def __init__(self, *args, **kwargs):
         # Don't pass the 'fields' arg up to the superclass
@@ -42,12 +41,17 @@ class UserSerializer(serializers.ModelSerializer):
 
     @property
     def data(self):
-        d = super(UserSerializer, self).data
+        _data = super(UserSerializer, self).data
+        import ipdb; ipdb.set_trace()
+        if isinstance(_data, dict):
+            if 'password' in _data:
+                del _data['password']
+        elif isinstance(_data, list):
+            for i in _data:
+                if 'password' in i:
+                    del i['password']
 
-        if 'password' in d:
-            del d['password']
-
-        return d
+        return _data
 
     def restore_object(self, attrs, instance=None):
         user = super(UserSerializer, self).restore_object(attrs, instance)
@@ -79,6 +83,19 @@ class UserSerializer(serializers.ModelSerializer):
             code='password_mismatch',
         )
 
+class LinksSerializer(serializers.Serializer):
+    next = pagination.NextPageField(source='*')
+    prev = pagination.PreviousPageField(source='*')
+
+class UserPaginationSerializer(pagination.BasePaginationSerializer):
+    prev = pagination.PreviousPageField(source='*')
+    next = pagination.NextPageField(source='*')
+    count = serializers.Field(source='paginator.count')
+    results_field = 'users'
+
+    def __init__(self, *args, **kwargs):
+        super(UserPaginationSerializer, self).__init__(*args, **kwargs)
+        object_serializer = UserSerializer
 
 class AnswerSerializer(serializers.ModelSerializer):
     writer = UserSerializer()
