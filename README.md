@@ -5,8 +5,7 @@ django_api_vom
 
     pip install -r requirement.txt
     ./manage.py syncdb
-  * ./manage.py schemamigration vom --initial
-  * vi vom/migrations/0001_initial.py
-     * http://django-rest-framework.org/api-guide/authentication#schema-migrations
-  * ./manage.py migrate vom --fake
-  * 
+    ./manage.py schemamigration vom --initial
+    vi vom/migrations/0001_initial.py
+    # http://django-rest-framework.org/api-guide/authentication#schema-migrations
+    ./manage.py migrate vom --fake
