@@ -11,8 +11,8 @@ django_api_vom
     ./manage.py schemamigration vom --initial
     vi vom/migrations/0001_initial.py # http://django-rest-framework.org/api-guide/authentication#schema-migrations
     
-```needed_by = (
-    ('authtoken', '0001_initial'),
-    )```
+    needed_by = (
+        ('authtoken', '0001_initial'),
+    )
     
     ./manage.py migrate vom --fake
