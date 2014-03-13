@@ -11,3 +11,4 @@ pycrypto==2.6.1
 python-keyczar==0.71c
 six==1.5.2
 wsgiref==0.1.2
+drf-nested-routers==0.1.3
