@@ -19,12 +19,14 @@ ENCRYPTED_FIELD_KEYS_DIR = os.path.normpath(os.path.join(BASE_DIR,
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_RENDERER_CLASSES': (
         'rest_framework.renderers.JSONRenderer',
         'rest_framework.renderers.BrowsableAPIRenderer',
         'rest_framework.renderers.XMLRenderer',
     ),
+    'PAGINATE_BY': 10,
 }
 
 # Quick-start development settings - unsuitable for production

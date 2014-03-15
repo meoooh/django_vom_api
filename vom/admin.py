@@ -12,7 +12,7 @@ class QuestionAdmin(admin.ModelAdmin):
     list_display = ('category', '__unicode__', 'creation', 'modification')
 
 class AnswerAdmin(admin.ModelAdmin):
-    list_display = ('writer', '__unicode__', 'creation', 'modification')
+    list_display = ('question', 'writer', '__unicode__', 'creation', 'modification')
 
 class HistoryAdmin(admin.ModelAdmin):
     list_display = ('user', 'creation', 'modification')

@@ -1,29 +1,112 @@
 from django.utils.translation import ugettext as _
 
-from rest_framework import serializers, pagination
+from rest_framework import serializers
 
 from .models import *
 
-
 class CategorySerializer(serializers.ModelSerializer):
+    url = serializers.Field(source="get_absolute_url")
 
     class Meta:
         model = Category
 
-class QuestionSerializer(serializers.ModelSerializer):
-    category = CategorySerializer()
+class ChangePasswordSerializer(serializers.Serializer):
+    current_password = serializers.CharField()
+    new_password = serializers.CharField()
+    new_password2 = serializers.CharField()
 
-    class Meta:
-        model = Question
+    def validate_current_password(self, attrs, source):
+        # http://goo.gl/5Frj9Z
+        if not self.object.check_password(attrs["current_password"]):
+            raise serializers.ValidationError(
+                _("Current password is not correct"),
+                code='password_wrong',
+            )
 
-class UserSerializer(serializers.HyperlinkedModelSerializer):
+        return attrs
+
+    def validate_new_password2(self, attrs, source):
+        if attrs["new_password"] != attrs["new_password2"]:
+            raise serializers.ValidationError(
+                _("This field must be matched by password field."),
+                code='password_mismatch',
+            )
+
+        return attrs
+
+    def restore_object(self, attrs, instance=None):
+        """ change password """
+        if instance is not None:
+            instance.set_password(attrs['new_password2'])
+            return instance
+        
+        return VomUser(**attrs)
+
+class UserCreationSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField()
+    url = serializers.Field(source="get_absolute_url")
 
     class Meta:
         model = VomUser
         fields = ('url', 'id', 'email', 'sex', 'birthday',
-                  'name', 'password', 'password2')
+                  'name', 'password', 'password2', 'creation', 'modification')
+        # read_only_fields = ('email', 'creation')
+        write_only_fields = ('password',)
+
+    def __init__(self, *args, **kwargs):
+        # Don't pass the 'fields' arg up to the superclass
+        fields = kwargs.pop('fields', None)
+
+        # Instantiate the superclass normally
+        super(UserCreationSerializer, self).__init__(*args, **kwargs)
+
+        if fields:
+            # Drop any fields that are not specified in the `fields` argument.
+            allowed = set(fields)
+            existing = set(self.fields.keys())
+            for field_name in existing - allowed:
+                self.fields.pop(field_name)
+
+    def restore_object(self, attrs, instance=None):
+        user = super(UserCreationSerializer, self).restore_object(attrs, instance)
+        if instance is None:
+            user.set_password(attrs['password'])
+        return user
+
+    def to_native(self, obj):
+        if 'password2' in self.fields:
+            del self.fields['password2']
+        return super(UserCreationSerializer, self).to_native(obj)
+
+    def validate_sex(self, attrs, source):
+        if attrs['sex'] not in (0, 1):
+            raise serializers.ValidationError(
+                _("You must choice '1' or '0'. '1' means male and '0' means" +
+                    " female. Your input: '%(value)s'"),
+                code='invalid',
+                params={'value': attrs['sex']}
+            )
+        return attrs
+
+    def validate_password2(self, attrs, source):
+        # http://goo.gl/U7FGWZ
+        if attrs.get('password') == attrs.pop('password2'):
+            return attrs
+        raise serializers.ValidationError(
+            _("This field must be matched by password field."),
+            code='password_mismatch',
+        )
+
+class UserSerializer(serializers.ModelSerializer):
+    password2 = serializers.CharField()
+    url = serializers.Field(source="get_absolute_url")
+
+    class Meta:
+        model = VomUser
+        fields = ('url', 'id', 'email', 'sex', 'birthday',
+                  'name', 'password', 'password2', 'creation', 'modification')
         read_only_fields = ('email',)
+        write_only_fields = ('password',)
 
     def __init__(self, *args, **kwargs):
         # Don't pass the 'fields' arg up to the superclass
@@ -38,20 +121,6 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
             existing = set(self.fields.keys())
             for field_name in existing - allowed:
                 self.fields.pop(field_name)
-
-    @property
-    def data(self):
-        _data = super(UserSerializer, self).data
-        import ipdb; ipdb.set_trace()
-        if isinstance(_data, dict):
-            if 'password' in _data:
-                del _data['password']
-        elif isinstance(_data, list):
-            for i in _data:
-                if 'password' in i:
-                    del i['password']
-
-        return _data
 
     def restore_object(self, attrs, instance=None):
         user = super(UserSerializer, self).restore_object(attrs, instance)
@@ -76,31 +145,51 @@ class UserSerializer(serializers.HyperlinkedModelSerializer):
 
     def validate_password2(self, attrs, source):
         # http://goo.gl/U7FGWZ
-        if attrs['password'] == attrs.pop('password2'):
+        if attrs.get('password') == attrs.pop('password2'):
             return attrs
         raise serializers.ValidationError(
-            _("The two password fields didn't match."),
+            _("This field must be matched by password field."),
             code='password_mismatch',
         )
 
-class LinksSerializer(serializers.Serializer):
-    next = pagination.NextPageField(source='*')
-    prev = pagination.PreviousPageField(source='*')
+class ItemSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
 
-class UserPaginationSerializer(pagination.BasePaginationSerializer):
-    prev = pagination.PreviousPageField(source='*')
-    next = pagination.NextPageField(source='*')
-    count = serializers.Field(source='paginator.count')
-    results_field = 'users'
+    class Meta:
+        model = Item
 
-    def __init__(self, *args, **kwargs):
-        super(UserPaginationSerializer, self).__init__(*args, **kwargs)
-        object_serializer = UserSerializer
+class ConstellationSerializer(serializers.HyperlinkedModelSerializer):
+
+    class Meta:
+        model = Constellation
+
+class QuestionSerializer(serializers.ModelSerializer):
+    url = serializers.Field(source="get_absolute_url")
+    date_of_receive = serializers.Field(source="date_of_receive")
+    # category = CategorySerializer()
+    # writer = UserSerializer()
+
+    class Meta:
+        model = Question
+        fields = ('url', 'id', 'contents', 'date_of_receive',)
 
 class AnswerSerializer(serializers.ModelSerializer):
-    writer = UserSerializer()
-    question = QuestionSerializer()
+    url = serializers.Field(source="get_absolute_url")
+    # question = serializers.PrimaryKeyRelatedField()
 
     class Meta:
         model = Answer
-        fields = ('id', 'question', 'writer', 'contents',)
+        fields = ('url', 'id', 'contents', 'creation', 'modification',)
+
+class AnswerCreationSerializer(serializers.ModelSerializer):
+    url = serializers.Field(source="get_absolute_url")
+    question = serializers.PrimaryKeyRelatedField()
+    writer = serializers.Field(source='writer')
+
+    def pre_save(self, obj):
+        obj.writer = self.request.user
+
+    class Meta:
+        model = Answer
+        # fields = ('url', 'id', 'contents', 'creation', 'modification')
+        # write_only_fields = ('question',)

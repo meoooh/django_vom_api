@@ -1,13 +1,17 @@
 # -*- coding: utf-8 -*-
+from datetime import date, timedelta
 
 from django.db import models
+from django.utils.translation import ugettext as _
 from django.contrib.auth.models import (AbstractBaseUser,
                                         PermissionsMixin, BaseUserManager)
 from django.template import defaultfilters as filters
 from django.conf import settings
-from datetime import date, timedelta
+from django.core.urlresolvers import reverse
+
 from django_extensions.db.fields import encrypted # http://goo.gl/WVCZV1
-from django.utils.translation import ugettext as _
+
+
 # Create your models here.
 
 class Constellation(models.Model):
@@ -19,8 +23,27 @@ class Constellation(models.Model):
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
 
+    def get_absolute_url(self):
+        return reverse('constellation-detail', args=[str(self.id)])
+
     def __unicode__(self):
         return self.kor
+
+class Category(models.Model):
+    name = models.CharField(max_length=254)
+
+    creation = models.DateTimeField(auto_now_add=True)
+    modification = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name_plural = 'Categories'
+
+    def get_absolute_url(self):
+        return reverse('category-detail', args=[str(self.id)])
+
+    def __unicode__(self):
+        return self.name
+
 
 class Item(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL)
@@ -29,22 +52,27 @@ class Item(models.Model):
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
 
-class Category(models.Model):
-    name = models.CharField(max_length=254)
-
-    creation = models.DateTimeField(auto_now_add=True)
-    modification = models.DateTimeField(auto_now=True)
-
-    def __unicode__(self):
-        return self.name
+    def get_absolute_url(self):
+        return reverse('item-detail', args=[str(self.id)])
 
 class Question(models.Model):
-    writer = models.ForeignKey(settings.AUTH_USER_MODEL)
+    writer = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='questions')
     contents = models.TextField()
     category = models.ForeignKey(Category)
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
+
+    def get_absolute_url(self):
+        return reverse(
+            'question-detail',
+            args=[
+                str(self.id),
+            ],
+        )
+
+    def date_of_receive(self):
+        return self.answers.first().creation.date()
 
     def __unicode__(self):
         return filters.truncatechars(self.contents, 30)
@@ -52,10 +80,19 @@ class Question(models.Model):
 class Answer(models.Model):
     writer = models.ForeignKey(settings.AUTH_USER_MODEL)
     contents = encrypted.EncryptedTextField()
-    question = models.ForeignKey(Question)
+    question = models.ForeignKey(Question, related_name='answers')
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
+
+    def get_absolute_url(self):
+        return reverse(
+            'answer-detail',
+            args=[
+                str(self.question.id),
+                str(self.id)
+            ],
+        )
 
     def __unicode__(self):
         return filters.truncatechars(self.contents, 30)
@@ -68,8 +105,12 @@ class History(models.Model):
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
 
+    def get_absolute_url(self):
+        return reverse('history-detail', args=[str(self.id)])
+
     class Meta:
         ordering = ['-pk']
+        verbose_name_plural = 'Histories'
 
 class MyUserManager(BaseUserManager):
     def create(self, email, name, birthday, sex, password):
@@ -130,6 +171,9 @@ class VomUser(AbstractBaseUser, PermissionsMixin):
 
     is_staff = models.BooleanField(default=False, blank=True,)
     is_active = models.BooleanField(default=True, blank=True,)
+
+    def get_absolute_url(self):
+        return reverse('accounts')
 
     def __unicode__(self):
         return self.email
