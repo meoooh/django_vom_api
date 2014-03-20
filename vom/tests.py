@@ -96,4 +96,5 @@ class AnswerVom(APITestCase):
         data = {'contents': 'hmmAnswer'}
         response = self.client.post('/questions/1/answers', data)
 
-        self.assertEqual(201, response.data)
+        self.assertEqual(201, response.status_code)
+        self.assertEqual(2, Answer.objects.count())

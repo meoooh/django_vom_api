@@ -52,11 +52,16 @@ class Item(models.Model):
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
 
+    @property
+    def owner(self):
+        return self.writer
+
     def get_absolute_url(self):
         return reverse('item-detail', args=[str(self.id)])
 
 class Question(models.Model):
-    writer = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='questions')
+    writer = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                related_name='questions')
     contents = models.TextField()
     category = models.ForeignKey(Category)
 
@@ -74,16 +79,24 @@ class Question(models.Model):
     def date_of_receive(self):
         return self.answers.first().creation.date()
 
+    @property
+    def owner(self):
+        return self.writer
+
     def __unicode__(self):
         return filters.truncatechars(self.contents, 30)
 
 class Answer(models.Model):
-    writer = models.ForeignKey(settings.AUTH_USER_MODEL)
+    writer = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='answers')
     contents = encrypted.EncryptedTextField()
     question = models.ForeignKey(Question, related_name='answers')
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
+
+    @property
+    def owner(self):
+        return self.writer
 
     def get_absolute_url(self):
         return reverse(
@@ -104,6 +117,10 @@ class History(models.Model):
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
+
+    @property
+    def owner(self):
+        return self.writer
 
     def get_absolute_url(self):
         return reverse('history-detail', args=[str(self.id)])

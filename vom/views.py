@@ -40,6 +40,13 @@ class AnswerCreationSet(generics.ListCreateAPIView):
 
         return queryset
 
+    def get_object(self):
+        import ipdb; ipdb.set_trace()
+
+    def pre_save(self, obj):
+        obj.writer = self.request.user
+        obj.question = models.Question.objects.get(pk=self.kwargs['question_pk'])
+
     # def create(self, request, *args, **kwargs):
     #     import ipdb; ipdb.set_trace()
     #     serializer = self.get_serializer_class()
@@ -94,18 +101,18 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     # @action()
-    # def answers(self, request, pk=None):
+    # def answers(self, request, pk=None): # {u'non_field_errors': [u'No input provided']} 이게 나온다...
     #     import ipdb; ipdb.set_trace()
-    #     answer = models.Answer(
-    #         writer=request.user,
-    #         contents=request.DATA.get('contents', None),
-    #         question=self.get_object()
-    #     )
-    #     answer.save()
-    #     serializer = serializers.AnswerSerializer(answer)
+    #     data = dict(request.DATA)
+    #     data['question'] = pk
+    #     # data['writer']
+    #     serializer = serializers.AnswerSerializer(data=data)
 
-    #     return Response(serializer.data, status.HTTP_201_CREATED)
-
+    #     if serializer.is_valid():
+    #         serializer.save()
+    #         return Response(serializer.data, status.HTTP_201_CREATED)
+    #     else:
+    #         return Response(serializer.errors, status.HTTP_400_BAD_REQUEST)
 
 class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CategorySerializer

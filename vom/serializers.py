@@ -166,8 +166,6 @@ class ConstellationSerializer(serializers.HyperlinkedModelSerializer):
 class QuestionSerializer(serializers.ModelSerializer):
     url = serializers.Field(source="get_absolute_url")
     date_of_receive = serializers.Field(source="date_of_receive")
-    # category = CategorySerializer()
-    # writer = UserSerializer()
 
     class Meta:
         model = Question
@@ -175,21 +173,24 @@ class QuestionSerializer(serializers.ModelSerializer):
 
 class AnswerSerializer(serializers.ModelSerializer):
     url = serializers.Field(source="get_absolute_url")
-    # question = serializers.PrimaryKeyRelatedField()
+    writer = serializers.Field(source='writer')
 
     class Meta:
         model = Answer
-        fields = ('url', 'id', 'contents', 'creation', 'modification',)
+        fields = ('url', 'id', 'question', 'writer', 'contents', 'creation',
+                'modification',)
+        read_only_fields = ('question',)
 
 class AnswerCreationSerializer(serializers.ModelSerializer):
     url = serializers.Field(source="get_absolute_url")
-    question = serializers.PrimaryKeyRelatedField()
     writer = serializers.Field(source='writer')
-
-    def pre_save(self, obj):
-        obj.writer = self.request.user
 
     class Meta:
         model = Answer
-        # fields = ('url', 'id', 'contents', 'creation', 'modification')
-        # write_only_fields = ('question',)
+        fields = ('url', 'id', 'question', 'writer', 'contents', 'creation',
+                'modification')
+        read_only_fields = ('question',)
+
+    # def validate(self, attrs):
+    #     import ipdb; ipdb.set_trace()
+    #     pass
