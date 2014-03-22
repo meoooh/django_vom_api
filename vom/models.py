@@ -77,7 +77,12 @@ class Question(models.Model):
         )
 
     def date_of_receive(self):
-        return self.answers.first().creation.date()
+        try:
+            return self.answers.first().creation.date()
+        except AttributeError:
+            return None
+        except:
+            assert False, 'error'
 
     @property
     def owner(self):
@@ -174,14 +179,14 @@ class VomUser(AbstractBaseUser, PermissionsMixin):
     birthday = models.DateField()
     sex = models.SmallIntegerField()
 
-    dateOfRecevingLastQuestion = models.DateField(
+    date_of_receving_last_question = models.DateField(
         default=date.today()-timedelta(days=1)
     )
-    questionOfToday = models.ForeignKey(Question, null=True, blank=True)
+    question_of_today = models.ForeignKey(Question, null=True, blank=True)
     constellation = models.ForeignKey(Constellation, null=True, blank=True)
     switch = models.BooleanField(default=False)
 
-    last_login_ip = models.GenericIPAddressField()
+    last_login_ip = models.GenericIPAddressField(null=True, blank=True)
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
