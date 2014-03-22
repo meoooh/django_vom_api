@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from datetime import date
 
 from django.utils.translation import ugettext as _
 from django.db.models import Q
@@ -41,11 +42,14 @@ class AnswerCreationSet(generics.ListCreateAPIView):
         return queryset
 
     def get_object(self):
-        import ipdb; ipdb.set_trace()
+        pass
 
     def pre_save(self, obj):
         obj.writer = self.request.user
         obj.question = models.Question.objects.get(pk=self.kwargs['question_pk'])
+
+    def post_save(self, obj, created=False):
+        pass
 
     # def create(self, request, *args, **kwargs):
     #     import ipdb; ipdb.set_trace()
@@ -92,11 +96,11 @@ class AnswerDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
 class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.QuestionSerializer
     queryset  = models.Question.objects.all()
-    # permission_classes = (custom_permissions.permissions.IsAuthenticated)
+    permission_classes = (custom_permissions.permissions.IsAuthenticated, )
 
     def get_queryset(self):
-        q = Q(answers__writer=self.request.user)
-        queryset  = models.Question.objects.filter(q).distinct()
+        queryset  = models.Question.objects.filter(
+            answers__writer=self.request.user).distinct()
 
         return queryset
 
@@ -130,7 +134,7 @@ class ItemViewSet(viewsets.ModelViewSet):
     permission_classes = (custom_permissions.permissions.IsAuthenticated)
 
 @api_view(['PATCH'])
-@permission_classes((custom_permissions.permissions.IsAuthenticated, ))
+@permission_classes((custom_permissions.permissions.IsAuthenticated,))
 def changePassword(request):
     """
     비밀번호 변경
@@ -147,3 +151,20 @@ def changePassword(request):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['GET', 'POST'])
+@permission_classes((custom_permissions.permissions.IsAuthenticated,))
+def questionOfToday(request):
+    if request.user.date_of_receving_last_question < date.today():
+        question = models.Question.objects.exclude(
+            answers__writer=request.user).order_by('?').first()
+        request.user.question_of_today = question
+        request.user.date_of_receving_last_question = date.today()
+
+        request.user.save()
+    else:
+        question = request.user.question_of_today
+
+    serializer = serializers.QuestionSerializer(question)
+
+    return Response(serializer.data)
