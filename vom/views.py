@@ -3,6 +3,7 @@ from datetime import date
 
 from django.utils.translation import ugettext as _
 from django.db.models import Q
+from django.core.urlresolvers import reverse
 
 from rest_framework import viewsets, status, generics, mixins
 from rest_framework.response import Response
@@ -152,19 +153,47 @@ def changePassword(request):
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
+def get_question_of_today(request):
+    try:
+        question = models.Question.objects.exclude(
+            answers__writer=request.user).order_by('?')[0]
+    except IndexError:
+        assert False, "There is no question."
+    request.user.question_of_today = question
+    request.user.date_of_receving_last_question = date.today()
+
+    request.user.save()
+
+    return question
+
 @api_view(['GET', 'POST'])
 @permission_classes((custom_permissions.permissions.IsAuthenticated,))
 def questionOfToday(request):
-    if request.user.date_of_receving_last_question < date.today():
-        question = models.Question.objects.exclude(
-            answers__writer=request.user).order_by('?').first()
-        request.user.question_of_today = question
-        request.user.date_of_receving_last_question = date.today()
+    if request.method == 'GET':
+        if request.user.date_of_receving_last_question < date.today():
+            question = get_question_of_today(request)
+        else:
+            question = request.user.question_of_today
 
-        request.user.save()
+        serializer = serializers.QuestionSerializer(question)
+
+        return Response(serializer.data)
+    elif request.method == 'POST':
+        if request.user.date_of_receving_last_question < date.today():
+            question = get_question_of_today(request)
+        serializer = serializers.AnswerSerializer(data=request.DATA)
+
+        if serializer.is_valid():
+            serializer.object.writer = request.user
+            serializer.object.question = request.user.question_of_today
+            serializer.save()
+            response = Response(serializer.data, status=status.HTTP_201_CREATED)
+            response['Location'] = reverse(
+                'answer-detail',
+                args=[str(serializer.data['question']), (serializer.data['id'])],
+            )
+
+            return response
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
     else:
-        question = request.user.question_of_today
-
-    serializer = serializers.QuestionSerializer(question)
-
-    return Response(serializer.data)
+        assert False, 'error'

@@ -99,6 +99,10 @@ class AnswerVom(APITestCase):
         question = Question.objects.create(writer=self.user, 
                                         contents='FirstQuestion',
                                         category=category)
+        for i in xrange(10):
+            Question.objects.create(writer=self.user, 
+                                            contents=fake.sentence(),
+                                            category=category)
         Answer.objects.create(writer=self.user,
                             contents='haha',
                             question=question)
@@ -109,6 +113,27 @@ class AnswerVom(APITestCase):
 
         self.assertEqual(201, response.status_code)
         self.assertEqual(2, Answer.objects.count())
+
+    def test_create_answer_related_question_of_today_with_question(self):
+        qt = self.client.get('/questions/question-of-today/').data
+
+        data = {'contents': fake.sentence()}
+        response = self.client.post('/questions/question-of-today/', data)
+
+        self.assertEqual(201, response.status_code)
+        self.assertTrue(response.has_header('location'))
+        self.assertEqual(response.data['question'], qt['id'])
+
+    def test_create_answer_related_question_of_today_without_question(self):
+        data = {'contents': fake.sentence()}
+        response = self.client.post('/questions/question-of-today/', data)
+
+        self.assertEqual(201, response.status_code)
+
+        qt = self.client.get('/questions/question-of-today/').data
+
+        self.assertEqual(response.data['question'], qt['id'])
+        
 
 class QuestionVom(APITestCase):
 
