@@ -12,3 +12,4 @@ python-keyczar==0.71c
 six==1.5.2
 wsgiref==0.1.2
 Werkzeug
+fake-factory
