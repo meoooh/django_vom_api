@@ -19,6 +19,7 @@ class UserCreationSet(generics.CreateAPIView):
     model = models.VomUser
 
 class UserDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
+    """내 정보"""
     model = models.VomUser
     serializer_class = serializers.UserSerializer
     permission_classes = (custom_permissions.permissions.IsAuthenticated,
@@ -32,6 +33,7 @@ class UserDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
         return self.request.user
 
 class AnswerCreationSet(generics.ListCreateAPIView):
+    """답변 목록 및 답변 등록"""
     serializer_class = serializers.AnswerCreationSerializer
     # model  = models.Answer
     permission_classes = (custom_permissions.permissions.IsAuthenticated,)
@@ -74,6 +76,7 @@ class AnswerCreationSet(generics.ListCreateAPIView):
     #                         status=status.HTTP_400_BAD_REQUEST)
 
 class AnswerDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
+    """나의 답변"""
     serializer_class = serializers.AnswerSerializer
     # queryset  = models.Answer.objects.all()
     permission_classes = (custom_permissions.permissions.IsAuthenticated,
@@ -103,6 +106,7 @@ class AnswerDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
 
 
 class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
+    """내가 답변한 질문"""
     serializer_class = serializers.QuestionSerializer
     queryset  = models.Question.objects.all()
     permission_classes = (custom_permissions.permissions.IsAuthenticated, )
@@ -177,6 +181,7 @@ def get_question_of_today(request):
 @api_view(['GET', 'POST'])
 @permission_classes((custom_permissions.permissions.IsAuthenticated,))
 def questionOfToday(request):
+    """오늘의 질문"""
     if request.method == 'GET':
         if request.user.date_of_receving_last_question < date.today():
             question = get_question_of_today(request)

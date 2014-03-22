@@ -115,27 +115,22 @@ class AnswerVom(APITestCase):
         self.assertEqual(2, Answer.objects.count())
 
     def test_read_answer(self):
-        response = self.client.get(
-            '/questions/%(question_pk)s/answers/%(answer_pk)s'
-            % {'question_pk': 1, 'answer_pk': 1}
-        )
+        response = self.client.get('/questions/1/answers/1')
 
-        self.assertEqual('haha', response.data['contents'])
+        self.assertEqual(200, response.status_code)
+        self.assertEqual('haha', response.data)
 
     def test_modify_answer(self):
         sentence = fake.sentence()
 
         response = self.client.get(
-            '/questions/%(question_pk)s/answers/%(answer_pk)s'
-            % {'question_pk': 1, 'answer_pk': 1}
-        )
+            '/questions/1/answers/1')
 
         self.assertNotEqual(sentence, response.data['contents'])
 
         data = {'contents': sentence}
         response = self.client.patch(
-            '/questions/%(question_pk)s/answers/%(answer_pk)s'
-            % {'question_pk': 1, 'answer_pk': 1}, data
+            '/questions/1/answers/1', data
         )
 
         self.assertEqual(sentence, response.data['contents'])
@@ -144,9 +139,7 @@ class AnswerVom(APITestCase):
         self.assertEqual(1, Answer.objects.count())
 
         response = self.client.delete(
-            '/questions/%(question_pk)s/answers/%(answer_pk)s'
-            % {'question_pk': 1, 'answer_pk': 1}
-        )
+            '/questions/1/answers/1')
 
         self.assertEqual(0, Answer.objects.count())
 
