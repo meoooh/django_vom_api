@@ -181,6 +181,8 @@ class VomUser(AbstractBaseUser, PermissionsMixin):
     constellation = models.ForeignKey(Constellation, null=True, blank=True)
     switch = models.BooleanField(default=False)
 
+    last_login_ip = models.GenericIPAddressField()
+
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
 
