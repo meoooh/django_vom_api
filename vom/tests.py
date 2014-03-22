@@ -21,6 +21,12 @@ class UserVom(APITestCase):
         # self.client.login(username=self.user.email, password='password')
         self.client.force_authenticate(user=self.user)
 
+    def test_login_success(self):
+        data = {'username': 'h@h.com', 'password':'password'}
+        response = self.client.post('/login', data)
+
+        self.assertIn('token', response.data)
+
     def test_create_user_multipart_success(self):
         data = {'email': 'ha@h.com', 'sex': 1, 'name': 'ha', 'password': '1313',
                 'password2': '1313', 'birthday': '1990-06-06'}
