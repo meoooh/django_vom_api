@@ -1,11 +1,16 @@
+# -*- coding: utf-8 -*-
 import datetime
-from unittest import skip
+from unittest import skip # @skip('blahblah')
 
 from rest_framework.test import APITestCase
+
+from faker import Faker
 
 from .models import *
 
 # Create your tests here.
+
+fake = Faker()
 
 def refresh(model_instance):
     cls = type(model_instance)
@@ -104,3 +109,46 @@ class AnswerVom(APITestCase):
 
         self.assertEqual(201, response.status_code)
         self.assertEqual(2, Answer.objects.count())
+
+class QuestionVom(APITestCase):
+
+    def setUp(self):
+        self.user = VomUser.objects.create_user(
+            'h@h.com', 'han', '1990-05-05', 1, 'password'
+        )
+        self.client.force_authenticate(user=self.user)
+
+        category = Category.objects.create(name=fake.word())
+        self.question1 = Question.objects.create(writer=self.user, 
+                                            contents=fake.sentence(),
+                                            category=category)
+        self.question2 = Question.objects.create(writer=self.user, 
+                                                contents=fake.sentence(),
+                                                category=category)
+
+        for i in xrange(10):
+            Question.objects.create(writer=self.user, 
+                                    contents=fake.sentence(),
+                                    category=category)
+
+        answer1 = Answer.objects.create(writer=self.user,
+                                        contents=fake.sentence(),
+                                        question=self.question1)
+
+    def test_get_specific_question(self):
+        response = self.client.get('/questions/1/')
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(1, response.data['id'])
+
+    def test_get_question_of_today(self):
+        """최초에 오늘의 질문을 받았으면, 그날은 몇번을 요청해도 해당 질문을 응답해야한다"""
+        response1 = self.client.get('/questions/question-of-today/')
+        self.assertEqual(200, response1.status_code)
+        self.assertNotEqual(self.question1.pk, response1.data['id'])
+
+        response2 = self.client.get('/questions/question-of-today/')
+        self.assertEqual(response1.data['id'], response2.data['id'])
+
+        response3 = self.client.get('/questions/question-of-today/')
+        self.assertEqual(response2.data['id'], response3.data['id'])
