@@ -64,7 +64,7 @@ class UserVom(APITestCase):
 
         user = refresh(self.user)
 
-        self.assertEqual(True, user.check_password(data['new_password']))
+        self.assertEqual(True, user.check_password(data.get('new_password')))
 
     def test_change_birthday_success(self):
         data = {'birthday': '1990-08-11'}
@@ -76,7 +76,7 @@ class UserVom(APITestCase):
         self.assertEqual(
             user.birthday,
             datetime.datetime.strptime(
-                data['birthday'], '%Y-%m-%d'
+                data.get('birthday'), '%Y-%m-%d'
             ).date()
         )
 
@@ -118,7 +118,7 @@ class AnswerVom(APITestCase):
         response = self.client.get('/questions/1/answers/1')
 
         self.assertEqual(200, response.status_code)
-        self.assertEqual('haha', response.data)
+        self.assertEqual('haha', response.data.get('contents'))
 
     def test_modify_answer(self):
         sentence = fake.sentence()
@@ -126,14 +126,13 @@ class AnswerVom(APITestCase):
         response = self.client.get(
             '/questions/1/answers/1')
 
-        self.assertNotEqual(sentence, response.data['contents'])
+        self.assertNotEqual(sentence, response.data.get('contents'))
 
         data = {'contents': sentence}
-        response = self.client.patch(
-            '/questions/1/answers/1', data
-        )
+        response = self.client.patch('/questions/1/answers/1', data)
 
-        self.assertEqual(sentence, response.data['contents'])
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(sentence, response.data.get('contents'))
 
     def test_delete_answer(self):
         self.assertEqual(1, Answer.objects.count())
@@ -163,7 +162,7 @@ class AnswerVom(APITestCase):
 
         self.assertEqual(201, response.status_code)
         self.assertTrue(response.has_header('location'))
-        self.assertEqual(response.data['question'], qt['id'])
+        self.assertEqual(response.data.get('question'), qt.get('id'))
 
     def test_create_answer_related_question_of_today_without_question(self):
         data = {'contents': fake.sentence()}
@@ -173,7 +172,7 @@ class AnswerVom(APITestCase):
 
         qt = self.client.get('/questions/question-of-today/').data
 
-        self.assertEqual(response.data['question'], qt['id'])
+        self.assertEqual(response.data.get('question'), qt.get('id'))
         
 
 class QuestionVom(APITestCase):
@@ -209,16 +208,16 @@ class QuestionVom(APITestCase):
         response = self.client.get('/questions/1/')
 
         self.assertEqual(200, response.status_code)
-        self.assertEqual(1, response.data['id'])
+        self.assertEqual(1, response.data.get('id'))
 
     def test_get_question_of_today(self):
         """최초에 오늘의 질문을 받았으면, 그날은 몇번을 요청해도 해당 질문을 응답해야한다"""
         response1 = self.client.get('/questions/question-of-today/')
         self.assertEqual(200, response1.status_code)
-        self.assertNotEqual(self.question1.pk, response1.data['id'])
+        self.assertNotEqual(self.question1.pk, response1.data.get('id'))
 
         response2 = self.client.get('/questions/question-of-today/')
-        self.assertEqual(response1.data['id'], response2.data['id'])
+        self.assertEqual(response1.data.get('id'), response2.data.get('id'))
 
         response3 = self.client.get('/questions/question-of-today/')
-        self.assertEqual(response2.data['id'], response3.data['id'])
+        self.assertEqual(response2.data.get('id'), response3.data.get('id'))

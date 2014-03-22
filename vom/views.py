@@ -85,9 +85,12 @@ class AnswerDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         q = Q(writer=self.request.user)
         q = q & Q(question__pk=self.kwargs['question_pk'])
-        raise Http404        
+
         queryset = models.Answer.objects.filter(q)
-        return get_list_or_404(queryset)
+        if queryset.count() > 0:
+            return queryset
+        else:
+            raise Http404
 
     def pre_save(self, obj):
         obj.writer = self.request.user
