@@ -85,6 +85,10 @@ class UserVom(APITestCase):
 
         self.assertEqual(204, response.status_code)
 
+    @skip("To Do!!!")
+    def test_password_reset(self):
+        pass
+
 class AnswerVom(APITestCase):
 
     def setUp(self):
