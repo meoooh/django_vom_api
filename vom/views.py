@@ -4,6 +4,8 @@ from datetime import date
 from django.utils.translation import ugettext as _
 from django.db.models import Q
 from django.core.urlresolvers import reverse
+from django.shortcuts import get_list_or_404
+from django.http import Http404
 
 from rest_framework import viewsets, status, generics, mixins
 from rest_framework.response import Response
@@ -40,14 +42,19 @@ class AnswerCreationSet(generics.ListCreateAPIView):
             question=self.kwargs['question_pk'],
         )
 
-        return queryset
+        return get_list_or_404(queryset)
 
     def get_object(self):
         pass
 
     def pre_save(self, obj):
         obj.writer = self.request.user
-        obj.question = models.Question.objects.get(pk=self.kwargs['question_pk'])
+        try:
+            obj.question = models.Question.objects.get(
+                pk=self.kwargs['question_pk']
+            )
+        except models.Question.DoesNotExist:
+            raise Http404
 
     def post_save(self, obj, created=False):
         pass
@@ -75,8 +82,9 @@ class AnswerDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
     def get_queryset(self):
         q = Q(writer=self.request.user)
         q = q & Q(question__pk=self.kwargs['question_pk'])
-
-        return models.Answer.objects.filter(q)
+        raise Http404        
+        queryset = models.Answer.objects.filter(q)
+        return get_list_or_404(queryset)
 
     def pre_save(self, obj):
         obj.writer = self.request.user

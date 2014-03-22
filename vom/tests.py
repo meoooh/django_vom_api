@@ -114,6 +114,54 @@ class AnswerVom(APITestCase):
         self.assertEqual(201, response.status_code)
         self.assertEqual(2, Answer.objects.count())
 
+    def test_read_answer(self):
+        response = self.client.get(
+            '/questions/%(question_pk)s/answers/%(answer_pk)s'
+            % {'question_pk': 1, 'answer_pk': 1}
+        )
+
+        self.assertEqual('haha', response.data['contents'])
+
+    def test_modify_answer(self):
+        sentence = fake.sentence()
+
+        response = self.client.get(
+            '/questions/%(question_pk)s/answers/%(answer_pk)s'
+            % {'question_pk': 1, 'answer_pk': 1}
+        )
+
+        self.assertNotEqual(sentence, response.data['contents'])
+
+        data = {'contents': sentence}
+        response = self.client.patch(
+            '/questions/%(question_pk)s/answers/%(answer_pk)s'
+            % {'question_pk': 1, 'answer_pk': 1}, data
+        )
+
+        self.assertEqual(sentence, response.data['contents'])
+
+    def test_delete_answer(self):
+        self.assertEqual(1, Answer.objects.count())
+
+        response = self.client.delete(
+            '/questions/%(question_pk)s/answers/%(answer_pk)s'
+            % {'question_pk': 1, 'answer_pk': 1}
+        )
+
+        self.assertEqual(0, Answer.objects.count())
+
+    @skip("To Do!!!")
+    def test_read_other_user_answer(self):
+        pass
+
+    @skip("To Do!!!")
+    def test_modifiy_other_user_answer(self):
+        pass
+
+    @skip("To Do!!!")
+    def test_delete_other_user_answer(self):
+        pass
+
     def test_create_answer_related_question_of_today_with_question(self):
         qt = self.client.get('/questions/question-of-today/').data
 
@@ -159,6 +207,10 @@ class QuestionVom(APITestCase):
         answer1 = Answer.objects.create(writer=self.user,
                                         contents=fake.sentence(),
                                         question=self.question1)
+
+    def test_read_unrecieved_question(self):
+        response = self.client.get('/questions/8/')
+        self.assertEqual(404, response.status_code)
 
     def test_get_specific_question(self):
         response = self.client.get('/questions/1/')
