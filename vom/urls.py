@@ -10,6 +10,7 @@ router.register(r'questions', views.QuestionViewSet)
 router.register(r'categories', views.CategoryViewSet)
 
 urlpatterns = patterns('vom',
+    url(r'^questions/question-of-today/?$', views.questionOfToday),
     url(r'^accounts/?$', views.UserCreationSet.as_view()),
     url(r'^accounts/me/?$', views.UserDetailViewSet.as_view(), name='accounts'),
     url(r'^questions/(?P<question_pk>\d+)/answers/?$',
