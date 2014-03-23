@@ -17,8 +17,7 @@ from django_extensions.db.fields import encrypted # http://goo.gl/WVCZV1
 class Constellation(models.Model):
     kor = models.CharField(max_length=254)
     eng = models.CharField(max_length=254)
-    image = models.TextField()
-    numberOfStar = models.PositiveSmallIntegerField()
+    number_of_star = models.PositiveSmallIntegerField()
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
@@ -27,7 +26,7 @@ class Constellation(models.Model):
         return reverse('constellation-detail', args=[str(self.id)])
 
     def __unicode__(self):
-        return self.kor
+        return filters.truncatechars(self.kor+"("+self.eng+")", 30)
 
 class Category(models.Model):
     name = models.CharField(max_length=254)
@@ -63,7 +62,7 @@ class Question(models.Model):
     writer = models.ForeignKey(settings.AUTH_USER_MODEL,
                                 related_name='questions')
     contents = models.TextField()
-    category = models.ForeignKey(Category)
+    category = models.ForeignKey(Category, related_name='questions')
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
