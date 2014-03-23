@@ -8,6 +8,7 @@ from vom import views
 router = routers.SimpleRouter(trailing_slash=True)
 router.register(r'questions', views.QuestionViewSet)
 # router.register(r'categories', views.CategoryViewSet)
+router.register(r'constellations', views.ConstellationViewSet)
 
 urlpatterns = patterns('vom',
     url(r'^questions/question-of-today/?$', views.questionOfToday),

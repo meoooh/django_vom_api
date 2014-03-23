@@ -121,7 +121,7 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
         return queryset
 
     # @action()
-    # def answers(self, request, pk=None): # {u'non_field_errors': [u'No input provided']} 이게 나온다...
+    # def answers(self, request, pk=None):
     #     import ipdb; ipdb.set_trace()
     #     data = dict(request.DATA)
     #     data['question'] = pk
@@ -137,17 +137,19 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
 class CategoryViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.CategorySerializer
     queryset  = models.Category.objects.all()
-    permission_classes = (custom_permissions.permissions.IsAuthenticated)
+    permission_classes = (custom_permissions.permissions.IsAuthenticated,)
 
-class ConstellationViewSet(viewsets.ModelViewSet):
+class ConstellationViewSet(mixins.ListModelMixin,
+                        mixins.RetrieveModelMixin,
+                        viewsets.GenericViewSet):
     serializer_class = serializers.ConstellationSerializer
     queryset  = models.Constellation.objects.all()
-    permission_classes = (custom_permissions.permissions.IsAuthenticated)
+    permission_classes = (custom_permissions.permissions.IsAuthenticated,)
 
 class ItemViewSet(viewsets.ModelViewSet):
     serializer_class = serializers.ItemSerializer
     queryset  = models.Item.objects.all()
-    permission_classes = (custom_permissions.permissions.IsAuthenticated)
+    permission_classes = (custom_permissions.permissions.IsAuthenticated,)
 
 @api_view(['PATCH'])
 @permission_classes((custom_permissions.permissions.IsAuthenticated,))
