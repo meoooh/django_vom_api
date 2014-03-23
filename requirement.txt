@@ -13,3 +13,4 @@ six==1.5.2
 wsgiref==0.1.2
 Werkzeug
 fake-factory
+django-cors-headers==0.12
