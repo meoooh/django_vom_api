@@ -214,6 +214,9 @@ class VomUser(AbstractBaseUser, PermissionsMixin):
     def get_username(self):
         return self.name
 
+    def get_full_name(self):
+        return self.name
+
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = ['name', 'birthday', 'sex', ]
 
