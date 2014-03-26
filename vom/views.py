@@ -145,9 +145,8 @@ class ItemViewSet(viewsets.ReadOnlyModelViewSet):
     permission_classes = (custom_permissions.permissions.IsAuthenticated,)
 
     def get_queryset(self):
-        # import ipdb; ipdb.set_trace()
         item_name = self.kwargs['item_name']
-        # toi = get_object_or_404(models.TypeOfItem, _eng=item_name.capitalize())
+        toi = get_object_or_404(models.TypeOfItem, _eng=item_name)
 
         if self.request.user.itembox.items.filter(pk=1).exists():
             al = models.ActivityLog.objects.filter(user=self.request.user).values_list('item', flat=True)
