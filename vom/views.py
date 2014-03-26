@@ -18,6 +18,13 @@ class UserCreationSet(generics.CreateAPIView):
     serializer_class = serializers.UserCreationSerializer
     model = models.VomUser
 
+    def post_save(self, obj, created=False):
+        toi = models.TypeOfItem.objects.first()
+        assert toi, u'TypeOfItem을 추가해주세요.'
+
+        models.ItemBox.objects.create(owner=obj).items.add(toi)
+
+
 class UserDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
     """내 정보"""
     model = models.VomUser

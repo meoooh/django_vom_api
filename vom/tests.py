@@ -25,6 +25,7 @@ class UserVom(APITestCase):
         )
         # self.client.login(username=self.user.email, password='password')
         self.client.force_authenticate(user=self.user)
+        TypeOfItem.objects.create(kor=u'별자리', _eng='constellations')
 
     def test_login_success(self):
         data = {'username': 'h@h.com', 'password':'password'}
