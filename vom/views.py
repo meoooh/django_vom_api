@@ -4,7 +4,7 @@ from datetime import date
 from django.utils.translation import ugettext as _
 from django.db.models import Q
 from django.core.urlresolvers import reverse
-from django.shortcuts import get_list_or_404
+from django.shortcuts import get_list_or_404, get_object_or_404
 from django.http import Http404
 
 from rest_framework import viewsets, status, generics, mixins
@@ -87,7 +87,7 @@ class AnswerDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
         q = q & Q(question__pk=self.kwargs['question_pk'])
 
         queryset = models.Answer.objects.filter(q)
-        if queryset.count() > 0:
+        if queryset:
             return queryset
         else:
             raise Http404
@@ -139,17 +139,21 @@ class CategoryViewSet(viewsets.ModelViewSet):
     queryset  = models.Category.objects.all()
     permission_classes = (custom_permissions.permissions.IsAuthenticated,)
 
-class ConstellationViewSet(mixins.ListModelMixin,
-                        mixins.RetrieveModelMixin,
-                        viewsets.GenericViewSet):
-    serializer_class = serializers.ConstellationSerializer
-    queryset  = models.Constellation.objects.all()
-    permission_classes = (custom_permissions.permissions.IsAuthenticated,)
-
-class ItemViewSet(viewsets.ModelViewSet):
+class ItemViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = serializers.ItemSerializer
     queryset  = models.Item.objects.all()
     permission_classes = (custom_permissions.permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        # import ipdb; ipdb.set_trace()
+        item_name = self.kwargs['item_name']
+        # toi = get_object_or_404(models.TypeOfItem, _eng=item_name.capitalize())
+
+        if self.request.user.itembox.items.filter(pk=1).exists():
+            al = models.ActivityLog.objects.filter(user=self.request.user).values_list('item', flat=True)
+            queryset = models.Item.objects.filter(pk__in=al)
+
+        return queryset
 
 @api_view(['PATCH'])
 @permission_classes((custom_permissions.permissions.IsAuthenticated,))

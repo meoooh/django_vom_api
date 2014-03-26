@@ -14,14 +14,11 @@ class QuestionAdmin(admin.ModelAdmin):
 class AnswerAdmin(admin.ModelAdmin):
     list_display = ('question', 'writer', '__unicode__', 'creation', 'modification')
 
-class HistoryAdmin(admin.ModelAdmin):
-    list_display = ('user', 'creation', 'modification')
-
 admin.site.register(get_user_model(), MyUserAdmin)
 admin.site.register(Question, QuestionAdmin)
 admin.site.register(Category, CategoryAdmin)
 admin.site.register(Answer, AnswerAdmin)
-admin.site.register(Constellation)
-admin.site.register(History, HistoryAdmin)
 admin.site.register(Item)
-
+admin.site.register(TypeOfItem)
+admin.site.register(ItemBox)
+admin.site.register(ActivityLog)

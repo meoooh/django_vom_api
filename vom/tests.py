@@ -180,8 +180,7 @@ class AnswerVom(APITestCase):
 
         qt = self.client.get('/questions/question-of-today/').data
 
-        self.assertEqual(response.data.get('question'), qt.get('id'))
-        
+        self.assertEqual(response.data.get('question'), qt.get('id'))        
 
 class QuestionVom(APITestCase):
 
@@ -229,3 +228,49 @@ class QuestionVom(APITestCase):
 
         response3 = self.client.get('/questions/question-of-today/')
         self.assertEqual(response2.data.get('id'), response3.data.get('id'))
+
+class ItemVom(APITestCase):
+    def setUp(self):
+        self.user = VomUser.objects.create_user(
+            'h@h.com', 'han', '1990-05-05', 1, 'password'
+        )
+        self.client.force_authenticate(user=self.user)
+
+        category = Category.objects.create(name=fake.word())
+        self.question1 = Question.objects.create(writer=self.user, 
+                                            contents=fake.sentence(),
+                                            category=category)
+        self.question2 = Question.objects.create(writer=self.user, 
+                                                contents=fake.sentence(),
+                                                category=category)
+
+        toi = TypeOfItem.objects.create(kor=u'별자리', _eng='constellations')
+
+        item = Item.objects.create(kor=u'북극성', _eng='book', number_of_elem=3,
+                                    form=toi)
+        item2 = Item.objects.create(kor=u'게자리', _eng='gae', number_of_elem=4,
+                                    form=toi)
+
+        for i in xrange(10):
+            Question.objects.create(writer=self.user, 
+                                    contents=fake.sentence(),
+                                    category=category)
+
+        answer1 = Answer.objects.create(writer=self.user,
+                                        contents=fake.sentence(),
+                                        question=self.question1)
+
+        item_box = ItemBox.objects.create(owner=self.user)
+        item_box.items.add(toi)
+
+        ActivityLog.objects.create(user=self.user, question=self.question1,
+                                    item=item)
+        ActivityLog.objects.create(user=self.user, question=self.question1,
+                                    item=item2)
+
+    # @skip("To Do!!!")
+    def test_get_items(self):
+        response = self.client.get('/constellations/')
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, len(response.data.get('results')))

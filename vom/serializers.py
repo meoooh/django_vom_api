@@ -153,15 +153,9 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 class ItemSerializer(serializers.ModelSerializer):
-    user = UserSerializer()
 
     class Meta:
         model = Item
-
-class ConstellationSerializer(serializers.HyperlinkedModelSerializer):
-
-    class Meta:
-        model = Constellation
 
 class QuestionSerializer(serializers.ModelSerializer):
     url = serializers.Field(source="get_absolute_url")

@@ -14,16 +14,43 @@ from django_extensions.db.fields import encrypted # http://goo.gl/WVCZV1
 
 # Create your models here.
 
-class Constellation(models.Model):
+class TypeOfItem(models.Model):
     kor = models.CharField(max_length=254)
-    eng = models.CharField(max_length=254)
-    number_of_star = models.PositiveSmallIntegerField()
+    _eng = models.CharField(max_length=254)
+
+    @property
+    def eng(self):
+        return self._eng.capitalize()
+
+    def __unicode__(self):
+        return filters.truncatechars(self.kor+"("+self.eng+")", 30)
+
+    def get_absolute_url(self):
+        return reverse('type_of_item-detail', args=[str(self.id)])
+
+class ItemBox(models.Model):
+    owner = models.OneToOneField(settings.AUTH_USER_MODEL)
+    items = models.ManyToManyField(TypeOfItem,)
+
+    def __unicode__(self):
+        return self.owner.name + _("'s item_box.")
+
+class Item(models.Model):
+    kor = models.CharField(max_length=254)
+    _eng = models.CharField(max_length=254)
+    number_of_elem = models.PositiveSmallIntegerField()
+
+    form = models.ForeignKey(TypeOfItem, related_name='items')
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
 
+    @property
+    def eng(self):
+        return self._eng.capitalize()
+
     def get_absolute_url(self):
-        return reverse('constellation-detail', args=[str(self.id)])
+        return reverse('item-detail', args=[str(self.id)])
 
     def __unicode__(self):
         return filters.truncatechars(self.kor+"("+self.eng+")", 30)
@@ -42,21 +69,6 @@ class Category(models.Model):
 
     def __unicode__(self):
         return self.name
-
-
-class Item(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    stuff = models.ForeignKey(Constellation)
-
-    creation = models.DateTimeField(auto_now_add=True)
-    modification = models.DateTimeField(auto_now=True)
-
-    @property
-    def owner(self):
-        return self.writer
-
-    def get_absolute_url(self):
-        return reverse('item-detail', args=[str(self.id)])
 
 class Question(models.Model):
     writer = models.ForeignKey(settings.AUTH_USER_MODEL,
@@ -114,24 +126,25 @@ class Answer(models.Model):
     def __unicode__(self):
         return filters.truncatechars(self.contents, 30)
 
-class History(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL)
-    question = models.ForeignKey(Question)
-    constellation = models.ForeignKey(Constellation)
+class ActivityLog(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL,
+                            related_name='activity_log')
+    question = models.ForeignKey(Question, related_name='activity_log')
+    item = models.ForeignKey(Item, related_name='activity_log')
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
 
     @property
     def owner(self):
-        return self.writer
+        return self.user
 
     def get_absolute_url(self):
-        return reverse('history-detail', args=[str(self.id)])
+        return reverse('activity_log-detail', args=[str(self.id)])
 
     class Meta:
         ordering = ['-pk']
-        verbose_name_plural = 'Histories'
+        verbose_name_plural = 'ActivityLog'
 
 class MyUserManager(BaseUserManager):
     def create(self, email, name, birthday, sex, password):
@@ -182,7 +195,7 @@ class VomUser(AbstractBaseUser, PermissionsMixin):
         default=date.today()-timedelta(days=1)
     )
     question_of_today = models.ForeignKey(Question, null=True, blank=True)
-    constellation = models.ForeignKey(Constellation, null=True, blank=True)
+    # constellation = models.ForeignKey(Constellation, null=True, blank=True)
     switch = models.BooleanField(default=False)
 
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
