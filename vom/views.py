@@ -149,7 +149,9 @@ class ItemViewSet(viewsets.ReadOnlyModelViewSet):
         toi = get_object_or_404(models.TypeOfItem, _eng=item_name)
 
         if self.request.user.itembox.items.filter(pk=toi.pk).exists():
-            al = models.ActivityLog.objects.filter(user=self.request.user).values_list('item', flat=True)
+            al = models.ActivityLog.objects.filter(
+                user=self.request.user
+                ).values_list('item', flat=True)
             queryset = models.Item.objects.filter(pk__in=al)
 
         return queryset
