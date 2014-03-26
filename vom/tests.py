@@ -267,10 +267,17 @@ class ItemVom(APITestCase):
                                     item=item)
         ActivityLog.objects.create(user=self.user, question=self.question1,
                                     item=item2)
+        ActivityLog.objects.create(user=self.user, question=self.question2,
+                                    item=item2)
 
-    # @skip("To Do!!!")
     def test_get_items(self):
         response = self.client.get('/constellations/')
 
         self.assertEqual(200, response.status_code)
-        self.assertEqual(2, len(response.data.get('results')))
+        self.assertEqual(2, response.data.get('count'))
+
+    def test_get_questions_related_item(self):
+        response = self.client.get('/constellations/2/questions')
+
+        self.assertEqual(200, response.status_code)
+        self.assertEqual(2, response.data.get('count'))

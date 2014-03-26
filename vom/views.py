@@ -152,7 +152,30 @@ class ItemViewSet(viewsets.ReadOnlyModelViewSet):
             al = models.ActivityLog.objects.filter(
                 user=self.request.user
                 ).values_list('item', flat=True)
-            queryset = models.Item.objects.filter(pk__in=al)
+            queryset = get_list_or_404(models.Item, pk__in=al)
+        else:
+            raise Http404
+
+        return queryset
+
+class QuestionRelatedItemViewSet(generics.ListAPIView):
+    serializer_class = serializers.QuestionSerializer
+    permission_classes = (custom_permissions.permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        item_name = self.kwargs['item_name']
+        item_pk = self.kwargs['item_pk']
+
+        toi = get_object_or_404(models.TypeOfItem, _eng=item_name)
+
+        if self.request.user.itembox.items.filter(pk=toi.pk).exists():
+            item = get_object_or_404(models.Item, pk=item_pk, form=toi)
+            al = models.ActivityLog.objects.filter(
+                user=self.request.user, item=item
+            ).values_list('question', flat=True)
+            queryset = get_list_or_404(models.Question, pk__in=al)
+        else:
+            raise Http404
 
         return queryset
 

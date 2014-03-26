@@ -23,4 +23,6 @@ urlpatterns = patterns('vom',
         include('rest_framework.urls', namespace='rest_framework')),
     url(r'^accounts/me/settings/change-password/?$', views.changePassword,
       name='changePassword'),
+    url(r'^(?P<item_name>[^/]+)/(?P<item_pk>\d+)/questions/?$',
+        views.QuestionRelatedItemViewSet.as_view()),
 )
