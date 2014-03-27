@@ -20,7 +20,7 @@ class UserCreationSet(generics.CreateAPIView):
 
     def post_save(self, obj, created=False):
         toi = models.TypeOfItem.objects.first()
-        assert toi, u'TypeOfItem을 추가해주세요.'
+        assert toi, 'There is no TypeOfItem.'
 
         models.ItemBox.objects.create(owner=obj).items.add(toi)
 
@@ -200,15 +200,18 @@ def changePassword(request):
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def get_question_of_today(request):
-    try:
-        question = models.Question.objects.exclude(
-            answers__writer=request.user).order_by('?')[0]
-    except IndexError:
-        assert False, "There is no question."
-    request.user.question_of_today = question
-    request.user.date_of_receving_last_question = date.today()
+    if request.user.date_of_receving_last_question < date.today():
+        try:
+            question = models.Question.objects.exclude(
+                answers__writer=request.user).order_by('?')[0]
+        except IndexError:
+            assert False, "There is no question."
+        request.user.question_of_today = question
+        request.user.date_of_receving_last_question = date.today()
 
-    request.user.save()
+        request.user.save()
+    else:
+        question = request.user.question_of_today
 
     return question
 
@@ -217,17 +220,15 @@ def get_question_of_today(request):
 def question_of_today(request):
     """오늘의 질문"""
     if request.method == 'GET':
-        if request.user.date_of_receving_last_question < date.today():
-            question = get_question_of_today(request)
-        else:
-            question = request.user.question_of_today
+        question = get_question_of_today(request)
 
         serializer = serializers.QuestionSerializer(question)
 
+        serializer.data['test'] = 'haha'
+
         return Response(serializer.data)
     elif request.method == 'POST':
-        if request.user.date_of_receving_last_question < date.today():
-            question = get_question_of_today(request)
+        question = get_question_of_today(request)
         serializer = serializers.AnswerSerializer(data=request.DATA)
 
         if serializer.is_valid():
