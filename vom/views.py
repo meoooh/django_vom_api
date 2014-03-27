@@ -238,7 +238,8 @@ def question_of_today(request):
             response = Response(serializer.data, status=status.HTTP_201_CREATED)
             response['Location'] = reverse(
                 'answer-detail',
-                args=[str(serializer.data['question']), (serializer.data['id'])],
+                args=[serializer.data['question'],
+                      serializer.data['id']],
             )
 
             return response
