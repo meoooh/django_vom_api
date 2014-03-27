@@ -105,11 +105,11 @@ class AnswerVom(APITestCase):
 
         category = Category.objects.create(name="FirstCategory")
 
-        question = Question.objects.create(writer=self.user, 
+        question = Question.objects.create(writer=self.user,
                                         contents='FirstQuestion',
                                         category=category)
         for i in xrange(10):
-            Question.objects.create(writer=self.user, 
+            Question.objects.create(writer=self.user,
                                             contents=fake.sentence(),
                                             category=category)
         Answer.objects.create(writer=self.user,
@@ -164,10 +164,10 @@ class AnswerVom(APITestCase):
         pass
 
     def test_create_answer_related_question_of_today_with_question(self):
-        qt = self.client.get('/questions/question-of-today/').data
+        qt = self.client.get('/questions/question-of-today').data
 
         data = {'contents': fake.sentence()}
-        response = self.client.post('/questions/question-of-today/', data)
+        response = self.client.post('/questions/question-of-today/answers', data)
 
         self.assertEqual(201, response.status_code)
         self.assertTrue(response.has_header('location'))
@@ -175,13 +175,14 @@ class AnswerVom(APITestCase):
 
     def test_create_answer_related_question_of_today_without_question(self):
         data = {'contents': fake.sentence()}
-        response = self.client.post('/questions/question-of-today/', data)
+        response = self.client.post('/questions/question-of-today/answers',
+                                    data)
 
         self.assertEqual(201, response.status_code)
 
         qt = self.client.get('/questions/question-of-today/').data
 
-        self.assertEqual(response.data.get('question'), qt.get('id'))        
+        self.assertEqual(response.data.get('question'), qt.get('id'))
 
 class QuestionVom(APITestCase):
 
@@ -192,15 +193,15 @@ class QuestionVom(APITestCase):
         self.client.force_authenticate(user=self.user)
 
         category = Category.objects.create(name=fake.word())
-        self.question1 = Question.objects.create(writer=self.user, 
+        self.question1 = Question.objects.create(writer=self.user,
                                             contents=fake.sentence(),
                                             category=category)
-        self.question2 = Question.objects.create(writer=self.user, 
+        self.question2 = Question.objects.create(writer=self.user,
                                                 contents=fake.sentence(),
                                                 category=category)
 
         for i in xrange(10):
-            Question.objects.create(writer=self.user, 
+            Question.objects.create(writer=self.user,
                                     contents=fake.sentence(),
                                     category=category)
 
@@ -238,10 +239,10 @@ class ItemVom(APITestCase):
         self.client.force_authenticate(user=self.user)
 
         category = Category.objects.create(name=fake.word())
-        self.question1 = Question.objects.create(writer=self.user, 
+        self.question1 = Question.objects.create(writer=self.user,
                                             contents=fake.sentence(),
                                             category=category)
-        self.question2 = Question.objects.create(writer=self.user, 
+        self.question2 = Question.objects.create(writer=self.user,
                                                 contents=fake.sentence(),
                                                 category=category)
 
@@ -253,7 +254,7 @@ class ItemVom(APITestCase):
                                     form=toi)
 
         for i in xrange(10):
-            Question.objects.create(writer=self.user, 
+            Question.objects.create(writer=self.user,
                                     contents=fake.sentence(),
                                     category=category)
 
