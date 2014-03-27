@@ -68,20 +68,6 @@ class AnswerCreationSet(generics.ListCreateAPIView):
     def post_save(self, obj, created=False):
         pass
 
-    # def create(self, request, *args, **kwargs):
-    #     import ipdb; ipdb.set_trace()
-    #     serializer = self.get_serializer_class()
-    #     data = dict(request.DATA)
-    #     data['question'] = [self.kwargs.get('question_pk')]
-    #     serializer = serializer(data=request.DATA)
-
-    #     if serializer.is_valid():
-    #         serializer.save()
-    #         return Response(serializer.data, status=status.HTTP_201_CREATED)
-    #     else:
-    #         return Response(serializer.errors, 
-    #                         status=status.HTTP_400_BAD_REQUEST)
-
 class AnswerDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
     """나의 답변"""
     serializer_class = serializers.AnswerSerializer
@@ -151,19 +137,27 @@ class ItemViewSet(viewsets.ReadOnlyModelViewSet):
     queryset  = models.Item.objects.all()
     permission_classes = (custom_permissions.permissions.IsAuthenticated,)
 
-    def get_queryset(self):
+    def pk_list_or_404(self):
         item_name = self.kwargs['item_name']
         toi = get_object_or_404(models.TypeOfItem, _eng=item_name)
-
         if self.request.user.itembox.items.filter(pk=toi.pk).exists():
             al = models.ActivityLog.objects.filter(
                 user=self.request.user
                 ).values_list('item', flat=True)
-            queryset = get_list_or_404(models.Item, pk__in=al)
         else:
             raise Http404
 
+        return al
+
+    def get_queryset(self):
+        queryset = get_list_or_404(models.Item, pk__in=self.pk_list_or_404())
+
         return queryset
+
+    def get_object(self):
+        if int(self.kwargs['pk']) not in self.pk_list_or_404():
+            raise Http404
+        return get_object_or_404(models.Item, pk=self.kwargs['pk'])
 
 class QuestionRelatedItemViewSet(generics.ListAPIView):
     serializer_class = serializers.QuestionSerializer

@@ -23,7 +23,7 @@ class TypeOfItem(models.Model):
         return self._eng.capitalize()
 
     def __unicode__(self):
-        return filters.truncatechars(self.kor+"("+self.eng+")", 30)
+        return self._eng
 
     def get_absolute_url(self):
         return reverse('type_of_item-detail', args=[str(self.id)])
@@ -50,7 +50,7 @@ class Item(models.Model):
         return self._eng.capitalize()
 
     def get_absolute_url(self):
-        return reverse('item-detail', args=[str(self.id)])
+        return reverse('item-detail', args=[str(self.form._eng), str(self.id)])
 
     def __unicode__(self):
         return filters.truncatechars(self.kor+"("+self.eng+")", 30)

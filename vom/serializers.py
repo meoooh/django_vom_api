@@ -153,6 +153,8 @@ class UserSerializer(serializers.ModelSerializer):
         )
 
 class ItemSerializer(serializers.ModelSerializer):
+    url = serializers.Field(source="get_absolute_url")
+    form = serializers.Field(source="form")
 
     class Meta:
         model = Item
