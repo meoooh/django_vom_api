@@ -214,7 +214,7 @@ def get_question_of_today(request):
 
 @api_view(['GET', 'POST'])
 @permission_classes((custom_permissions.permissions.IsAuthenticated,))
-def questionOfToday(request):
+def question_of_today(request):
     """오늘의 질문"""
     if request.method == 'GET':
         if request.user.date_of_receving_last_question < date.today():
