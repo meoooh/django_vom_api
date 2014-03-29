@@ -39,7 +39,7 @@ class ChangePasswordSerializer(serializers.Serializer):
         if instance is not None:
             instance.set_password(attrs['new_password2'])
             return instance
-        
+
         return VomUser(**attrs)
 
 class UserCreationSerializer(serializers.ModelSerializer):
@@ -155,9 +155,16 @@ class UserSerializer(serializers.ModelSerializer):
 class ItemSerializer(serializers.ModelSerializer):
     url = serializers.Field(source="get_absolute_url")
     form = serializers.Field(source="form")
+    is_incomplete_item = serializers.SerializerMethodField('get_item')
 
     class Meta:
         model = Item
+
+    def get_item(self, obj):
+        request = self.context['request']
+        if request.user.item_which_I_am_collecting == obj:
+            return ActivityLog.objects.filter(user=request.user,
+                                              item=obj).count()
 
 class QuestionSerializer(serializers.ModelSerializer):
     url = serializers.Field(source="get_absolute_url")

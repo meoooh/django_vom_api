@@ -20,12 +20,23 @@ def refresh(model_instance):
 class UserVom(APITestCase):
 
     def setUp(self):
+        toi = TypeOfItem.objects.create(kor=u'별자리', _eng='constellations')
+        item = Item.objects.create(kor=u'북극성', _eng='book', number_of_elem=3,
+                                    form=toi)
+        item2 = Item.objects.create(kor=u'게자리', _eng='gae', number_of_elem=4,
+                                    form=toi)
         self.user = VomUser.objects.create_user(
             'h@h.com', 'han', '1990-05-05', 1, 'password'
         )
+        self.user.item_which_I_am_collecting = item
+        self.user.save()
         # self.client.login(username=self.user.email, password='password')
+        data = {'username': 'h@h.com', 'password': 'password'}
+        self.client.post('/login', data)
         self.client.force_authenticate(user=self.user)
-        TypeOfItem.objects.create(kor=u'별자리', _eng='constellations')
+
+
+
 
     def test_login_success(self):
         data = {'username': 'h@h.com', 'password':'password'}
@@ -86,9 +97,10 @@ class UserVom(APITestCase):
 
         self.assertEqual(204, response.status_code)
 
-    @skip("To Do!!!")
-    def test_logout():
-        pass
+    def test_logout(self):
+        response = self.client.delete('/logout')
+
+        self.assertEqual(204, response.status_code)
 
     @skip("To Do!!!")
     def test_password_reset(self):
@@ -97,9 +109,16 @@ class UserVom(APITestCase):
 class AnswerVom(APITestCase):
 
     def setUp(self):
+        toi = TypeOfItem.objects.create(kor=u'별자리', _eng='constellations')
+        item = Item.objects.create(kor=u'북극성', _eng='book', number_of_elem=3,
+                                    form=toi)
+        item2 = Item.objects.create(kor=u'게자리', _eng='gae', number_of_elem=4,
+                                    form=toi)
         self.user = VomUser.objects.create_user(
             'h@h.com', 'han', '1990-05-05', 1, 'password'
         )
+        self.user.item_which_I_am_collecting = item
+        self.user.save()
         # self.client.login(username=self.user.email, password='password')
         self.client.force_authenticate(user=self.user)
 
@@ -187,9 +206,17 @@ class AnswerVom(APITestCase):
 class QuestionVom(APITestCase):
 
     def setUp(self):
+        toi = TypeOfItem.objects.create(kor=u'별자리', _eng='constellations')
+        item = Item.objects.create(kor=u'북극성', _eng='book', number_of_elem=3,
+                                    form=toi)
+        item2 = Item.objects.create(kor=u'게자리', _eng='gae', number_of_elem=4,
+                                    form=toi)
         self.user = VomUser.objects.create_user(
             'h@h.com', 'han', '1990-05-05', 1, 'password'
         )
+        self.user.item_which_I_am_collecting = item
+        self.user.save()
+        # self.client.login(username=self.user.email, password='password')
         self.client.force_authenticate(user=self.user)
 
         category = Category.objects.create(name=fake.word())
@@ -233,9 +260,17 @@ class QuestionVom(APITestCase):
 
 class ItemVom(APITestCase):
     def setUp(self):
+        toi = TypeOfItem.objects.create(kor=u'별자리', _eng='constellations')
+        item = Item.objects.create(kor=u'북극성', _eng='book', number_of_elem=3,
+                                    form=toi)
+        item2 = Item.objects.create(kor=u'게자리', _eng='gae', number_of_elem=4,
+                                    form=toi)
         self.user = VomUser.objects.create_user(
             'h@h.com', 'han', '1990-05-05', 1, 'password'
         )
+        self.user.item_which_I_am_collecting = item
+        self.user.save()
+        # self.client.login(username=self.user.email, password='password')
         self.client.force_authenticate(user=self.user)
 
         category = Category.objects.create(name=fake.word())
@@ -245,13 +280,6 @@ class ItemVom(APITestCase):
         self.question2 = Question.objects.create(writer=self.user,
                                                 contents=fake.sentence(),
                                                 category=category)
-
-        toi = TypeOfItem.objects.create(kor=u'별자리', _eng='constellations')
-
-        item = Item.objects.create(kor=u'북극성', _eng='book', number_of_elem=3,
-                                    form=toi)
-        item2 = Item.objects.create(kor=u'게자리', _eng='gae', number_of_elem=4,
-                                    form=toi)
 
         for i in xrange(10):
             Question.objects.create(writer=self.user,

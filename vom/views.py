@@ -24,6 +24,12 @@ class UserCreationSet(generics.CreateAPIView):
 
         models.ItemBox.objects.create(owner=obj).items.add(toi)
 
+        item = models.Item.objects.order_by('?').first()
+        assert item, 'There is no Item.'
+
+        obj.item_which_I_am_collecting = item
+        obj.save()
+
 
 class UserDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
     """내 정보"""
@@ -32,9 +38,16 @@ class UserDetailViewSet(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = (custom_permissions.permissions.IsAuthenticated,
                         custom_permissions.IsOwner,)
 
-    def retrieve(self, request, *args, **kwargs):
+    def retrieve(self, request, pk=None):
         """내 정보 가져오기"""
-        return super(UserDetailViewSet, self).retrieve(request, *args, **kwargs)
+        return super(UserDetailViewSet, self).retrieve(request, pk)
+
+    # update, partial_update시 password는 변경하지 않도록 처리햐야함...
+    # def update(self, request, pk=None):
+    #     import ipdb; ipdb.set_trace()
+
+    # def partial_update(self, request, pk=None):
+    #     pass
 
     def get_object(self):
         return self.request.user
@@ -208,6 +221,29 @@ def get_question_of_today(request):
             assert False, "There is no question."
         request.user.question_of_today = question
         request.user.date_of_receving_last_question = date.today()
+        request.user.is_register_first_answer = False
+
+        number_of_item = models.ActivityLog.objects.filter(
+            user=request.user,
+            item=request.user.item_which_I_am_collecting
+        ).count()
+        number_of_iwIac = request.user.item_which_I_am_collecting.number_of_elem
+
+        if number_of_item == number_of_iwIac:
+            pk_list_of_item = models.ActivityLog.objects.filter(
+                user=request.user,
+            ).values_list('item', flat=True)
+
+            q = Q(pk__in=pk_list_of_item)
+            q = q & ~Q(form=request.user.itembox.items.last())
+
+            excluded_items = models.Item.objects.exclude(q)
+            print excluded_items
+            new_item = excluded_items.order_by('?').first()
+
+            assert new_item, "There is no longer item."
+
+            request.user.item_which_I_am_collecting = new_item
 
         request.user.save()
     else:
@@ -215,36 +251,61 @@ def get_question_of_today(request):
 
     return question
 
-@api_view(['GET', 'POST'])
+@api_view(['GET'])
 @permission_classes((custom_permissions.permissions.IsAuthenticated,))
 def question_of_today(request):
-    """오늘의 질문"""
-    if request.method == 'GET':
-        question = get_question_of_today(request)
+    """
+    오늘의 질문 보기
+    """
+    question = get_question_of_today(request)
 
-        serializer = serializers.QuestionSerializer(question)
+    serializer = serializers.QuestionSerializer(question)
 
-        serializer.data['test'] = 'haha'
+    serializer.data['test'] = 'haha'
 
-        return Response(serializer.data)
-    elif request.method == 'POST':
-        question = get_question_of_today(request)
-        serializer = serializers.AnswerSerializer(data=request.DATA)
+    return Response(serializer.data)
 
-        if serializer.is_valid():
-            serializer.object.writer = request.user
-            serializer.object.question = request.user.question_of_today
-            serializer.save()
-            response = Response(serializer.data, status=status.HTTP_201_CREATED)
-            response['Location'] = reverse(
-                'answer-detail',
-                args=[
-                    serializer.data['question'],
-                    serializer.data['id']
-                ],
-            )
+@api_view(['POST'])
+@permission_classes((custom_permissions.permissions.IsAuthenticated,))
+def answer_question_of_today(request):
+    """
+    오늘의 질문에 대한 답변 등록하기
 
-            return response
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        assert False, 'error'
+    contents -- 답변 내용
+    """
+    question = get_question_of_today(request)
+    serializer = serializers.AnswerSerializer(data=request.DATA)
+
+    if not serializer.is_valid():
+        return Response(serializer.errors,
+                        status=status.HTTP_400_BAD_REQUEST)
+
+    serializer.object.writer = request.user
+    serializer.object.question = request.user.question_of_today
+    serializer.save()
+    response = Response(serializer.data, status=status.HTTP_201_CREATED)
+    response['Location'] = reverse(
+        'answer-detail',
+        args=[
+            serializer.data['question'],
+            serializer.data['id'],
+        ],
+    )
+
+    if not request.user.is_register_first_answer:
+        models.ActivityLog.objects.create(
+            user=request.user,
+            question=question,
+            item=request.user.item_which_I_am_collecting
+        )
+        request.user.is_register_first_answer = True
+        request.user.save()
+
+    return response
+
+@api_view(['DELETE'])
+@permission_classes((custom_permissions.permissions.IsAuthenticated,))
+def logout(request):
+    request.user.auth_token.delete()
+
+    return Response(status=status.HTTP_204_NO_CONTENT)

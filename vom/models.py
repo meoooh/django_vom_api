@@ -142,6 +142,9 @@ class ActivityLog(models.Model):
     def get_absolute_url(self):
         return reverse('activity_log-detail', args=[str(self.id)])
 
+    def __unicode__(self):
+        return self.user.name + ', ' + self.item.eng
+
     class Meta:
         ordering = ['-pk']
         verbose_name_plural = 'ActivityLog'
@@ -158,7 +161,7 @@ class MyUserManager(BaseUserManager):
     def create_user(self, email, name, birthday, sex, password):
         if not email:
             raise ValueError(_('email cannot be blank.'))
- 
+
         user = self.model(
             email=MyUserManager.normalize_email(email),
             name=name,
@@ -170,7 +173,7 @@ class MyUserManager(BaseUserManager):
         user.set_password(password)
         user.save(using=self._db)
         return user
- 
+
     def create_superuser(self, email, name, birthday, sex, password):
         user = self.create_user(email=email,
             password=password,
@@ -195,8 +198,8 @@ class VomUser(AbstractBaseUser, PermissionsMixin):
         default=date.today()-timedelta(days=1)
     )
     question_of_today = models.ForeignKey(Question, null=True, blank=True)
-    # constellation = models.ForeignKey(Constellation, null=True, blank=True)
-    switch = models.BooleanField(default=False)
+    is_register_first_answer = models.BooleanField(default=True)
+    item_which_I_am_collecting = models.ForeignKey(Item, null=True, blank=True)
 
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
 
