@@ -121,4 +121,4 @@ EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 
 CORS_ORIGIN_ALLOW_ALL = True
 
-ADMINS = (('han', 'meoooh@gmail.com'),)
+MANAGERS = ADMINS = (('han', 'meoooh@gmail.com'),)
