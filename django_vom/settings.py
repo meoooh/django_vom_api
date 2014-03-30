@@ -13,7 +13,7 @@ import os
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
 
 AUTH_USER_MODEL = 'vom.VomUser'
-ENCRYPTED_FIELD_KEYS_DIR = os.path.normpath(os.path.join(BASE_DIR, 
+ENCRYPTED_FIELD_KEYS_DIR = os.path.normpath(os.path.join(BASE_DIR,
                                                         'ENCRYPTED_FIELD_KEYS'))
 
 REST_FRAMEWORK = {
@@ -112,10 +112,12 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'vom.meaningsearch@gmail.com'
 EMAIL_HOST_PASSWORD = 'dmlalckwrl1!'
- 
+
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 SERVER_EMAIL = EMAIL_HOST_USER
 
 EMAIL_BACKEND = 'django.core.mail.backends.dummy.EmailBackend'
 
 CORS_ORIGIN_ALLOW_ALL = True
+
+ADMINS = (('han', 'meoooh@gmail.com'),)
