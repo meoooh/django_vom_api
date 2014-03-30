@@ -40,7 +40,8 @@ class Item(models.Model):
     _eng = models.CharField(max_length=254)
     number_of_elem = models.PositiveSmallIntegerField()
 
-    form = models.ForeignKey(TypeOfItem, related_name='items')
+    form = models.ForeignKey(TypeOfItem, related_name='items', null=True,
+                             on_delete=models.SET_NULL)
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
@@ -71,10 +72,12 @@ class Category(models.Model):
         return self.name
 
 class Question(models.Model):
-    writer = models.ForeignKey(settings.AUTH_USER_MODEL,
-                                related_name='questions')
+    writer = models.ForeignKey(settings.AUTH_USER_MODEL, null=True,
+                               related_name='questions',
+                               on_delete=models.SET_NULL)
     contents = models.TextField()
-    category = models.ForeignKey(Category, related_name='questions')
+    category = models.ForeignKey(Category, related_name='questions', null=True,
+                                 on_delete=models.SET_NULL)
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
@@ -105,7 +108,8 @@ class Question(models.Model):
 class Answer(models.Model):
     writer = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='answers')
     contents = encrypted.EncryptedTextField()
-    question = models.ForeignKey(Question, related_name='answers')
+    question = models.ForeignKey(Question, related_name='answers', null=True,
+                                 on_delete=models.SET_NULL)
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
@@ -129,8 +133,10 @@ class Answer(models.Model):
 class ActivityLog(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL,
                             related_name='activity_log')
-    question = models.ForeignKey(Question, related_name='activity_log')
-    item = models.ForeignKey(Item, related_name='activity_log')
+    question = models.ForeignKey(Question, related_name='activity_log',
+                                 on_delete=models.SET_NULL, null=True)
+    item = models.ForeignKey(Item, related_name='activity_log', null=True,
+                             on_delete=models.SET_NULL)
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)
@@ -197,9 +203,11 @@ class VomUser(AbstractBaseUser, PermissionsMixin):
     date_of_receving_last_question = models.DateField(
         default=date.today()-timedelta(days=1)
     )
-    question_of_today = models.ForeignKey(Question, null=True, blank=True)
+    question_of_today = models.ForeignKey(Question, null=True, blank=True,
+                                          on_delete=models.SET_NULL)
     is_register_first_answer = models.BooleanField(default=False)
-    item_which_I_am_collecting = models.ForeignKey(Item, null=True, blank=True)
+    item_which_I_am_collecting = models.ForeignKey(Item, null=True, blank=True,
+                                                   on_delete=models.SET_NULL)
 
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
 
