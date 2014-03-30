@@ -198,7 +198,7 @@ class VomUser(AbstractBaseUser, PermissionsMixin):
         default=date.today()-timedelta(days=1)
     )
     question_of_today = models.ForeignKey(Question, null=True, blank=True)
-    is_register_first_answer = models.BooleanField(default=True)
+    is_register_first_answer = models.BooleanField(default=False)
     item_which_I_am_collecting = models.ForeignKey(Item, null=True, blank=True)
 
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
