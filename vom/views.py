@@ -261,8 +261,6 @@ def question_of_today(request):
 
     serializer = serializers.QuestionSerializer(question)
 
-    serializer.data['test'] = 'haha'
-
     return Response(serializer.data)
 
 @api_view(['POST'])
