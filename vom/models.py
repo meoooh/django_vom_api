@@ -15,8 +15,8 @@ from django_extensions.db.fields import encrypted # http://goo.gl/WVCZV1
 # Create your models here.
 
 class TypeOfItem(models.Model):
-    kor = models.CharField(max_length=254)
-    _eng = models.CharField(max_length=254)
+    kor = models.CharField(max_length=254, unique=True)
+    _eng = models.CharField(max_length=254, unique=True)
 
     @property
     def eng(self):
@@ -29,15 +29,15 @@ class TypeOfItem(models.Model):
         return reverse('type_of_item-detail', args=[str(self.id)])
 
 class ItemBox(models.Model):
-    owner = models.OneToOneField(settings.AUTH_USER_MODEL)
+    owner = models.OneToOneField(settings.AUTH_USER_MODEL, unique=True)
     items = models.ManyToManyField(TypeOfItem,)
 
     def __unicode__(self):
         return self.owner.name + _("'s item_box.")
 
 class Item(models.Model):
-    kor = models.CharField(max_length=254)
-    _eng = models.CharField(max_length=254)
+    kor = models.CharField(max_length=254, unique=True)
+    _eng = models.CharField(max_length=254, unique=True)
     number_of_elem = models.PositiveSmallIntegerField()
 
     form = models.ForeignKey(TypeOfItem, related_name='items', null=True,
@@ -57,7 +57,7 @@ class Item(models.Model):
         return filters.truncatechars(self.kor+"("+self.eng+")", 30)
 
 class Category(models.Model):
-    name = models.CharField(max_length=254)
+    name = models.CharField(max_length=254, unique=True)
 
     creation = models.DateTimeField(auto_now_add=True)
     modification = models.DateTimeField(auto_now=True)

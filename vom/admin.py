@@ -12,7 +12,7 @@ class QuestionAdmin(admin.ModelAdmin):
     list_display = ('category', '__unicode__', 'creation', 'modification')
 
 class AnswerAdmin(admin.ModelAdmin):
-    list_display = ('question', 'writer', '__unicode__', 'creation', 'modification')
+    list_display = ('question', 'writer', 'creation', 'modification')
 
 admin.site.register(get_user_model(), MyUserAdmin)
 admin.site.register(Question, QuestionAdmin)
