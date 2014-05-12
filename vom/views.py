@@ -188,6 +188,7 @@ class QuestionRelatedItemViewSet(generics.ListAPIView):
                 user=self.request.user, item=item
             ).values_list('question', flat=True)
             queryset = get_list_or_404(models.Question, pk__in=al)
+            queryset = sorted(queryset, key=lambda qs: qs.date_of_receive())
         else:
             raise Http404
 
