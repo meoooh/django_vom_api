@@ -268,7 +268,7 @@ class ItemVom(APITestCase):
         self.user = VomUser.objects.create_user(
             'h@h.com', 'han', '1990-05-05', 1, 'password'
         )
-        self.user.item_which_I_am_collecting = item
+        self.user.item_which_I_am_collecting = item2
         self.user.save()
         # self.client.login(username=self.user.email, password='password')
         self.client.force_authenticate(user=self.user)
@@ -289,6 +289,10 @@ class ItemVom(APITestCase):
         answer1 = Answer.objects.create(writer=self.user,
                                         contents=fake.sentence(),
                                         question=self.question1)
+
+        Answer.objects.create(writer=self.user,
+                            contents=fake.sentence(),
+                            question=self.question2)
 
         item_box = ItemBox.objects.create(owner=self.user)
         item_box.items.add(toi)
