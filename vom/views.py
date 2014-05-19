@@ -123,8 +123,16 @@ class QuestionViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         queryset  = models.Question.objects.filter(
             answers__writer=self.request.user).distinct()
+        queryset = sorted(queryset, key=lambda qs: qs.date_of_receive())
 
         return queryset
+
+    def get_object(self):
+        queryset  = models.Question.objects.filter(
+            answers__writer=self.request.user
+        ).distinct()
+
+        return get_object_or_404(queryset, pk=self.kwargs['pk'])
 
     # @action()
     # def answers(self, request, pk=None):
