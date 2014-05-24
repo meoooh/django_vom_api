@@ -8,6 +8,7 @@ from django.contrib.auth.models import (AbstractBaseUser,
 from django.template import defaultfilters as filters
 from django.conf import settings
 from django.core.urlresolvers import reverse
+from django.utils.timezone import localtime
 
 from django_extensions.db.fields import encrypted # http://goo.gl/WVCZV1
 
@@ -92,7 +93,7 @@ class Question(models.Model):
 
     def date_of_receive(self):
         try:
-            return self.answers.first().creation.date()
+            return localtime(self.answers.first().creation).date()
         except AttributeError:
             return None
         except:
