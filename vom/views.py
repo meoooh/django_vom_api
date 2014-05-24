@@ -227,7 +227,7 @@ def get_question_of_today(request):
             question = models.Question.objects.exclude(
                 answers__writer=request.user).order_by('?')[0]
         except IndexError:
-            assert False, "There is no question."
+            assert False, "There is no loger question."
         request.user.question_of_today = question
         request.user.date_of_receving_last_question = date.today()
         request.user.is_register_first_answer = False
