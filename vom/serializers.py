@@ -104,7 +104,8 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = VomUser
         fields = ('url', 'id', 'email', 'sex', 'birthday',
-                  'name', 'password', 'password2', 'creation', 'modification')
+                  'name', 'password', 'password2', 'creation', 'modification',
+                  'item_which_I_am_collecting')
         read_only_fields = ('email',)
         write_only_fields = ('password',)
 
