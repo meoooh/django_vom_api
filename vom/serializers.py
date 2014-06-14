@@ -68,7 +68,8 @@ class UserCreationSerializer(serializers.ModelSerializer):
                 self.fields.pop(field_name)
 
     def restore_object(self, attrs, instance=None):
-        user = super(UserCreationSerializer, self).restore_object(attrs, instance)
+        user = super(UserCreationSerializer, self).restore_object(attrs,
+                                                                  instance)
         if instance is None:
             user.set_password(attrs['password'])
         return user
@@ -105,7 +106,7 @@ class UserSerializer(serializers.ModelSerializer):
         model = VomUser
         fields = ('url', 'id', 'email', 'sex', 'birthday',
                   'name', 'password', 'password2', 'creation', 'modification',
-                  'item_which_I_am_collecting')
+                  'item_which_I_am_collecting',)
         read_only_fields = ('email',)
         write_only_fields = ('password',)
 
