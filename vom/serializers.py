@@ -98,9 +98,24 @@ class UserCreationSerializer(serializers.ModelSerializer):
             code='password_mismatch',
         )
 
+class ItemSerializer(serializers.HyperlinkedModelSerializer):
+    url = serializers.Field(source="get_absolute_url")
+    form = serializers.Field(source="form")
+    is_incomplete_item = serializers.SerializerMethodField('get_item')
+
+    class Meta:
+        model = Item
+
+    def get_item(self, obj):
+        request = self.context['request']
+        if request.user.item_which_I_am_collecting == obj:
+            return ActivityLog.objects.filter(user=request.user,
+                                              item=obj).count()
+
 class UserSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField()
     url = serializers.Field(source="get_absolute_url")
+    item_which_I_am_collecting = ItemSerializer()
 
     class Meta:
         model = VomUser
@@ -153,20 +168,6 @@ class UserSerializer(serializers.ModelSerializer):
             _("This field must be matched by password field."),
             code='password_mismatch',
         )
-
-class ItemSerializer(serializers.ModelSerializer):
-    url = serializers.Field(source="get_absolute_url")
-    form = serializers.Field(source="form")
-    is_incomplete_item = serializers.SerializerMethodField('get_item')
-
-    class Meta:
-        model = Item
-
-    def get_item(self, obj):
-        request = self.context['request']
-        if request.user.item_which_I_am_collecting == obj:
-            return ActivityLog.objects.filter(user=request.user,
-                                              item=obj).count()
 
 class QuestionSerializer(serializers.ModelSerializer):
     url = serializers.Field(source="get_absolute_url")
