@@ -105,6 +105,8 @@ class ItemSerializer(serializers.HyperlinkedModelSerializer):
 
     class Meta:
         model = Item
+        fields = ('id', 'url', 'form', 'is_incomplete_item', 'kor', '_eng',
+                  'number_of_elem')
 
     def get_item(self, obj):
         request = self.context['request']
