@@ -4,7 +4,7 @@ South==0.8.4
 Unipath==1.0
 django-extensions
 django-rest-swagger
-djangorestframework==2.3.13
+djangorestframework==2.3.14
 ipdb
 ipython
 pyasn1==0.1.7
