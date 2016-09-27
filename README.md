@@ -1,4 +1,4 @@
-django_api_vom
+django_api_vom()
 ==============
 
 ##초기설정
